@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:my_finance/screens/add_transaction_screen.dart';
+import 'package:my_finance/screens/analysis_screen.dart';
+import 'package:my_finance/screens/records_screen.dart';
 import '../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
+  int _selectedIndex = 0;
   String fullName = "Loading...";
 
+  final List<Widget> _pages = [
+    AnalysisScreen(),
+    AddTransactionScreen(),
+    RecordsScreen(),
+  ];
   @override
   void initState() {
     super.initState();
@@ -33,7 +42,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Welcome, $fullName')),
-      body: Center(child: Text('Your Dashboard')),
+      body: _pages[_selectedIndex],
+
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex:  _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items:  const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart), 
+            label: 'Analysis'),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add Transaction'),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Records'),
+        ]
+      ),
     );
   }
 }
