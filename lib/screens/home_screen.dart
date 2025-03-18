@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:my_finance/screens/add_transaction_screen.dart';
+import './add_transaction_screen.dart';
 import 'package:my_finance/screens/analysis_screen.dart';
 import 'package:my_finance/screens/records_screen.dart';
 import '../services/auth_service.dart';
