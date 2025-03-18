@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/transaction.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
-
-final formatter = DateFormat.yMd();
-const uuid = Uuid();
-
-enum Category { food, leisure, travel, work }
-enum TransactionType { income, expense }
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -19,21 +13,46 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime? _selectedDate;
-  Category _selectedCategory = Category.food;
-  TransactionType _selectedType = TransactionType.expense; // Default to Expense
+  TransactionType _selectedType = TransactionType.expense;
+  List<String> _categories = ['Food', 'Leisure', 'Travel', 'Work'];
+  String? _selectedCategory;
 
-  void _presentDatePicker() async {
-    final now = DateTime.now();
-    final firstDate = DateTime(now.year - 1, now.month, now.day);
-    final pickedDate = await showDatePicker(
+  final formatter = DateFormat.yMMMd();
+
+  void _addNewCategory() {
+    TextEditingController _newCategoryController = TextEditingController();
+
+    showDialog(
       context: context,
-      initialDate: now,
-      firstDate: firstDate,
-      lastDate: now,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text("Add New Category"),
+          content: TextField(
+            controller: _newCategoryController,
+            decoration: const InputDecoration(labelText: "Category Name"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newCategoryName = _newCategoryController.text.trim();
+                if (newCategoryName.isNotEmpty && !_categories.contains(newCategoryName)) {
+                  setState(() {
+                    _categories.add(newCategoryName);
+                    _selectedCategory = newCategoryName;
+                  });
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text("Add"),
+            ),
+          ],
+        );
+      },
     );
-    setState(() {
-      _selectedDate = pickedDate;
-    });
   }
 
   void _submitTransaction() {
@@ -42,18 +61,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
     if (_titleController.text.trim().isEmpty ||
         amountIsInvalid ||
-        _selectedDate == null) {
+        _selectedDate == null ||
+        _selectedCategory == null) {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text("Invalid Input"),
-          content: const Text(
-              "Please enter a valid Title, Amount, Date, and Category."),
+          content: const Text("Please enter a valid Title, Amount, Date, and Category."),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-              },
+              onPressed: () => Navigator.pop(ctx),
               child: const Text("Okay"),
             ),
           ],
@@ -61,15 +78,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       );
       return;
     }
-
-    // widget.onAddTransaction(Transaction(
-    //     title: _titleController.text,
-    //     amount: enteredAmount,
-    //     date: _selectedDate!,
-    //     category: _selectedCategory,
-    //     type: _selectedType, // Store income/expense type
-    // ));
-
     Navigator.pop(context);
   }
 
@@ -96,7 +104,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // **Title Input**
                   TextField(
                     controller: _titleController,
                     maxLength: 50,
@@ -110,7 +117,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // **Amount Input**
                   TextField(
                     controller: _amountController,
                     keyboardType: TextInputType.number,
@@ -124,59 +130,29 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // **Transaction Type Selector (Income / Expense)**
-                  Text(
-                    "Transaction Type",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ChoiceChip(
-                        label: const Text("Expense"),
-                        selected: _selectedType == TransactionType.expense,
-                        selectedColor: Colors.redAccent,
-                        onSelected: (selected) {
-                          setState(() {
-                            _selectedType = TransactionType.expense;
-                          });
-                        },
+                  const Text("Category", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  DropdownButtonFormField<String?>(
+                    value: _selectedCategory,
+                    items: [
+                      ..._categories.map(
+                        (category) => DropdownMenuItem(
+                          value: category,
+                          child: Text(category),
+                        ),
                       ),
-                      const SizedBox(width: 10),
-                      ChoiceChip(
-                        label: const Text("Income"),
-                        selected: _selectedType == TransactionType.income,
-                        selectedColor: Colors.green,
-                        onSelected: (selected) {
-                          setState(() {
-                            _selectedType = TransactionType.income;
-                          });
-                        },
+                      DropdownMenuItem<String?>(
+                        value: null,
+                        child: const Text("➕ Add New Category"),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // **Category Selector**
-                  Text(
-                    "Category",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  DropdownButtonFormField(
-                    value: _selectedCategory,
-                    items: Category.values
-                        .map(
-                          (category) => DropdownMenuItem(
-                            value: category,
-                            child: Text(category.name.toUpperCase()),
-                          ),
-                        )
-                        .toList(),
                     onChanged: (value) {
-                      if (value == null) return;
-                      setState(() {
-                        _selectedCategory = value;
-                      });
+                      if (value == null) {
+                        _addNewCategory();
+                      } else {
+                        setState(() {
+                          _selectedCategory = value;
+                        });
+                      }
                     },
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.category),
@@ -187,12 +163,22 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // **Date Picker**
                   GestureDetector(
-                    onTap: _presentDatePicker,
+                    onTap: () async {
+                      final pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(DateTime.now().year - 1),
+                        lastDate: DateTime.now(),
+                      );
+                      if (pickedDate != null) {
+                        setState(() {
+                          _selectedDate = pickedDate;
+                        });
+                      }
+                    },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey),
                         borderRadius: BorderRadius.circular(8),
@@ -200,12 +186,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            _selectedDate == null
-                                ? "Select Date"
-                                : formatter.format(_selectedDate!),
-                            style: TextStyle(fontSize: 16),
-                          ),
+                          Text(_selectedDate == null ? "Select Date" : formatter.format(_selectedDate!)),
                           const Icon(Icons.calendar_today, color: Colors.blue),
                         ],
                       ),
@@ -213,18 +194,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // **Buttons: Cancel & Save**
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          "Cancel",
-                          style: TextStyle(fontSize: 16),
-                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Cancel"),
                       ),
                       ElevatedButton.icon(
                         onPressed: _submitTransaction,
@@ -233,11 +208,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.deepPurple,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         ),
                       ),
                     ],

@@ -1,10 +1,8 @@
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
-
+import 'category.dart';
 final formatter = DateFormat.yMd();
 const uuid = Uuid();
-
-enum Category { food, leisure, travel, work }
 
 
 enum TransactionType { income, expense }
@@ -22,7 +20,7 @@ class Transaction {
   final String title;
   final double amount;
   final DateTime date;
-  final Category category;
+  final CategoryModel category;
   final TransactionType type; // NEW FIELD
 
   String get formattedDate {
