@@ -42,7 +42,10 @@ class HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Welcome, $fullName')),
-      body: _pages[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex:  _selectedIndex,

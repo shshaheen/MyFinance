@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_finance/screens/records_screen.dart';
 import '../models/transaction.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -172,7 +173,11 @@ void _submitTransaction() async {
       'createdAt': FieldValue.serverTimestamp(),
     });
 
-    Navigator.pop(context);
+    Navigator.pushReplacement(
+      context, 
+      MaterialPageRoute(builder: (context) => RecordsScreen() 
+      )
+    );
   } catch (error) {
     print("Error adding transaction: $error");
     showDialog(
@@ -240,7 +245,71 @@ void _submitTransaction() async {
                     ),
                   ),
                   const SizedBox(height: 12),
+Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    const Text("Transaction Type", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+    const SizedBox(height: 8),
+    Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        ToggleButtons(
+          isSelected: [_selectedType == TransactionType.expense, _selectedType == TransactionType.income],
+          onPressed: (index) {
+            setState(() {
+              _selectedType = index == 0 ? TransactionType.expense : TransactionType.income;
+            });
+          },
+          borderRadius: BorderRadius.circular(8),
+          selectedColor: Colors.white,
+          fillColor: Colors.deepPurple,
+          color: Colors.black,
+          children: const [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Text("Expense"),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Text("Income"),
+            ),
+          ],
+        ),
+        GestureDetector(
+          onTap: () async {
+            final pickedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(DateTime.now().year - 1),
+              lastDate: DateTime.now(),
+            );
+            if (pickedDate != null) {
+              setState(() {
+                _selectedDate = pickedDate;
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Text(_selectedDate == null ? "Select Date" : formatter.format(_selectedDate!)),
+                const SizedBox(width: 8),
+                const Icon(Icons.calendar_today, color: Colors.blue),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  ],
+),
 
+                const SizedBox(height: 20,),
                   const Text("Category", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   DropdownButtonFormField<String?>(
                 value: _selectedCategory,
@@ -269,40 +338,8 @@ void _submitTransaction() async {
                   child: const Text("Manage Categories"),             
                 ),
               ),
-            
-        
-              const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () async {
-                      final pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(DateTime.now().year - 1),
-                        lastDate: DateTime.now(),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          _selectedDate = pickedDate;
-                        });
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(_selectedDate == null ? "Select Date" : formatter.format(_selectedDate!)),
-                          const Icon(Icons.calendar_today, color: Colors.blue),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
+                    
+              const SizedBox(height: 12),           
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
