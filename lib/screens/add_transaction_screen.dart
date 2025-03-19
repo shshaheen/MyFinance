@@ -3,14 +3,32 @@ import 'package:my_finance/screens/records_screen.dart';
 import '../models/transaction.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 class AddTransactionScreen extends StatefulWidget {
-  const AddTransactionScreen({super.key});
+  final Map<String, dynamic>? transaction;
+
+  const AddTransactionScreen({super.key, this.transaction});
 
   @override
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
 }
 
 class _AddTransactionScreenState extends State<AddTransactionScreen> {
+ 
+@override
+void initState() {
+  super.initState();
+  if (widget.transaction != null) {
+    _titleController.text = widget.transaction!['title'];
+    _amountController.text = widget.transaction!['amount'].toString();
+    _selectedDate = DateTime.parse(widget.transaction!['date']);
+    _selectedCategory = widget.transaction!['category'];
+    _selectedType = widget.transaction!['type'] == "TransactionType.expense"
+        ? TransactionType.expense
+        : TransactionType.income;
+  }
+}
+
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime? _selectedDate;
@@ -19,7 +37,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   String? _selectedCategory;
 
   final formatter = DateFormat.yMMMd();
-    void _manageCategories() {
+  void _manageCategories() {
     showDialog(
       context: context,
       builder: (ctx) {
@@ -56,7 +74,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   void _editCategory(String oldCategory) {
-    TextEditingController _editController = TextEditingController(text: oldCategory);
+    TextEditingController _editController =
+        TextEditingController(text: oldCategory);
     showDialog(
       context: context,
       builder: (ctx) {
@@ -74,7 +93,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ElevatedButton(
               onPressed: () {
                 final newCategoryName = _editController.text.trim();
-                if (newCategoryName.isNotEmpty && !_categories.contains(newCategoryName)) {
+                if (newCategoryName.isNotEmpty &&
+                    !_categories.contains(newCategoryName)) {
                   setState(() {
                     int index = _categories.indexOf(oldCategory);
                     _categories[index] = newCategoryName;
@@ -103,6 +123,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     Navigator.pop(context);
     _manageCategories();
   }
+
   void _addNewCategory() {
     TextEditingController _newCategoryController = TextEditingController();
 
@@ -123,7 +144,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ElevatedButton(
               onPressed: () {
                 final newCategoryName = _newCategoryController.text.trim();
-                if (newCategoryName.isNotEmpty && !_categories.contains(newCategoryName)) {
+                if (newCategoryName.isNotEmpty &&
+                    !_categories.contains(newCategoryName)) {
                   setState(() {
                     _categories.add(newCategoryName);
                     _selectedCategory = newCategoryName;
@@ -139,7 +161,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
   }
 
-void _submitTransaction() async {
+  void _submitTransaction() async {
   final enteredAmount = double.tryParse(_amountController.text);
   final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
 
@@ -151,7 +173,8 @@ void _submitTransaction() async {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text("Invalid Input"),
-        content: const Text("Please enter a valid Title, Amount, Date, and Category."),
+        content: const Text(
+            "Please enter a valid Title, Amount, Date, and Category."),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -164,27 +187,41 @@ void _submitTransaction() async {
   }
 
   try {
-    await FirebaseFirestore.instance.collection('transactions').add({
-      'title': _titleController.text.trim(),
-      'amount': enteredAmount,
-      'date': _selectedDate!.toIso8601String(),
-      'category': _selectedCategory,
-      'type': _selectedType.toString(), // Expense or Income
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+    if (widget.transaction != null) {
+      // **Update Existing Transaction**
+      await FirebaseFirestore.instance
+          .collection('transactions')
+          .doc(widget.transaction!['id'])
+          .update({
+        'title': _titleController.text.trim(),
+        'amount': enteredAmount,
+        'date': _selectedDate!.toIso8601String(),
+        'category': _selectedCategory,
+        'type': _selectedType.toString(),
+      });
+    } else {
+      // **Add New Transaction**
+      String docId =
+          FirebaseFirestore.instance.collection('transactions').doc().id;
+      await FirebaseFirestore.instance.collection('transactions').doc(docId).set({
+        'id': docId,
+        'title': _titleController.text.trim(),
+        'amount': enteredAmount,
+        'date': _selectedDate!.toIso8601String(),
+        'category': _selectedCategory,
+        'type': _selectedType.toString(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
 
-    Navigator.pushReplacement(
-      context, 
-      MaterialPageRoute(builder: (context) => RecordsScreen() 
-      )
-    );
+    Navigator.pop(context);
   } catch (error) {
-    print("Error adding transaction: $error");
+    print("Error saving transaction: $error");
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text("Error"),
-        content: const Text("Failed to add transaction. Try again."),
+        content: const Text("Failed to save transaction. Try again."),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -232,7 +269,6 @@ void _submitTransaction() async {
                     ),
                   ),
                   const SizedBox(height: 12),
-
                   TextField(
                     controller: _amountController,
                     keyboardType: TextInputType.number,
@@ -245,101 +281,115 @@ void _submitTransaction() async {
                     ),
                   ),
                   const SizedBox(height: 12),
-Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    const Text("Transaction Type", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-    const SizedBox(height: 8),
-    Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        ToggleButtons(
-          isSelected: [_selectedType == TransactionType.expense, _selectedType == TransactionType.income],
-          onPressed: (index) {
-            setState(() {
-              _selectedType = index == 0 ? TransactionType.expense : TransactionType.income;
-            });
-          },
-          borderRadius: BorderRadius.circular(8),
-          selectedColor: Colors.white,
-          fillColor: Colors.deepPurple,
-          color: Colors.black,
-          children: const [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text("Expense"),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text("Income"),
-            ),
-          ],
-        ),
-        GestureDetector(
-          onTap: () async {
-            final pickedDate = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(DateTime.now().year - 1),
-              lastDate: DateTime.now(),
-            );
-            if (pickedDate != null) {
-              setState(() {
-                _selectedDate = pickedDate;
-              });
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Text(_selectedDate == null ? "Select Date" : formatter.format(_selectedDate!)),
-                const SizedBox(width: 8),
-                const Icon(Icons.calendar_today, color: Colors.blue),
-              ],
-            ),
-          ),
-        ),
-      ],
-    ),
-  ],
-),
-
-                const SizedBox(height: 20,),
-                  const Text("Category", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  DropdownButtonFormField<String?>(
-                value: _selectedCategory,
-                items: _categories.map((category) => DropdownMenuItem(
-                      value: category,
-                      child: Text(category),
-                    )).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.category),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Transaction Type",
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ToggleButtons(
+                            isSelected: [
+                              _selectedType == TransactionType.expense,
+                              _selectedType == TransactionType.income
+                            ],
+                            onPressed: (index) {
+                              setState(() {
+                                _selectedType = index == 0
+                                    ? TransactionType.expense
+                                    : TransactionType.income;
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            selectedColor: Colors.white,
+                            fillColor: Colors.deepPurple,
+                            color: Colors.black,
+                            children: const [
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text("Expense"),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text("Income"),
+                              ),
+                            ],
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              final pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(DateTime.now().year - 1),
+                                lastDate: DateTime.now(),
+                              );
+                              if (pickedDate != null) {
+                                setState(() {
+                                  _selectedDate = pickedDate;
+                                });
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 12, horizontal: 16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(_selectedDate == null
+                                      ? "Select Date"
+                                      : formatter.format(_selectedDate!)),
+                                  const SizedBox(width: 8),
+                                  const Icon(Icons.calendar_today,
+                                      color: Colors.blue),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(   
-
-                  onPressed: _manageCategories,
-                  child: const Text("Manage Categories"),             
-                ),
-              ),
-                    
-              const SizedBox(height: 12),           
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  const Text("Category",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  DropdownButtonFormField<String?>(
+                    value: _selectedCategory,
+                    items: _categories
+                        .map((category) => DropdownMenuItem(
+                              value: category,
+                              child: Text(category),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCategory = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.category),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _manageCategories,
+                      child: const Text("Manage Categories"),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -354,7 +404,8 @@ Column(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.deepPurple,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 12),
                         ),
                       ),
                     ],
