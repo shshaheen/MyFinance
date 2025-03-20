@@ -114,6 +114,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
 
           double balance = totalIncome - totalExpense;
 
+          
           return Column(
             children: [
               // Top Summary Section

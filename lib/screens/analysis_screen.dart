@@ -10,6 +10,7 @@ class AnalysisScreen extends StatefulWidget {
 
 class _AnalysisScreenState extends State<AnalysisScreen> {
   String _selectedFilter = "Net Amount";
+  DateTimeRange? _selectedDateRange;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       // backgroundColor: Colors.black87,
       appBar: AppBar(
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Aligns items properly
+          mainAxisAlignment:
+              MainAxisAlignment.spaceBetween, // Aligns items properly
           children: [
             DropdownButtonHideUnderline(
               child: DropdownButton<String>(
@@ -40,16 +42,26 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               ),
             ),
             IconButton(
-              icon: Icon(Icons.filter_list, color: Colors.white), // Filter icon
-              onPressed: () {
-                // Action when filter icon is clicked
-                print("Filter icon clicked");
+              icon: Icon(Icons.filter_list,
+                  color: Color.fromARGB(255, 35, 34, 34)), // Filter icon
+              onPressed: () async {
+                DateTimeRange? picked = await showDateRangePicker(
+                  context: context,
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime.now(),
+                  initialDateRange: _selectedDateRange,
+                );
+
+                if (picked != null) {
+                  setState(() {
+                    _selectedDateRange = picked;
+                  });
+                }
               },
             ),
           ],
         ),
       ),
-
 
       body: StreamBuilder(
         stream:
@@ -59,10 +71,69 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             return Center(child: CircularProgressIndicator());
           }
 
+List<QueryDocumentSnapshot> filteredDocs =
+    snapshot.data!.docs.where((doc) {
+  var data = doc.data() as Map<String, dynamic>;
+
+  if (!data.containsKey('date')) return false;
+
+  // Ensure correct date conversion
+  DateTime transactionDate;
+  if (data['date'] is Timestamp) {
+    transactionDate = (data['date'] as Timestamp).toDate();
+  } else if (data['date'] is String) {
+    try {
+      transactionDate = DateTime.parse(data['date']); // Convert string to DateTime
+    } catch (e) {
+      print("Invalid date format: ${data['date']}");
+      return false; // Skip this document if date format is incorrect
+    }
+  } else {
+    return false; // Skip if date is neither Timestamp nor String
+  }
+
+  if (_selectedDateRange == null) return true;
+
+  return transactionDate.isAfter(
+          _selectedDateRange!.start.subtract(Duration(seconds: 1))) &&
+      transactionDate.isBefore(
+          _selectedDateRange!.end.add(Duration(days: 1)));
+}).toList();
+
+
+
+          if (filteredDocs.isEmpty) {
+            return Center(
+              child: Text(
+                "No $_selectedFilter transactions found in the selected date range!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey),
+              ),
+            );
+          }
+
+          if (filteredDocs.isEmpty) {
+            return Center(
+              child: Text(
+                "No $_selectedFilter transactions found in the selected date range!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey),
+              ),
+            );
+          }
+
+          // Process filtered transactions
           Map<String, double> categorySpending = {};
           Map<String, double> categoryEarnings = {};
           Map<String, double> categoryNetAmount = {};
-          for (var doc in snapshot.data!.docs) {
+
+          for (var doc in filteredDocs) {
             var data = doc.data() as Map<String, dynamic>;
             double amount = (data['amount'] as num).toDouble();
             String type = data['type'];
@@ -75,36 +146,49 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               categorySpending[category] =
                   (categorySpending[category] ?? 0) - amount;
             }
+
             // Ensure values exist before calculating net amount
             double earnings = categoryEarnings[category] ?? 0;
             double spending = categorySpending[category] ?? 0;
             categoryNetAmount[category] = earnings + spending;
           }
 
+          // Convert negative values to positive for visualization
           Map<String, double> positiveNetAmount = {};
           categoryNetAmount.forEach((key, value) {
-            positiveNetAmount[key] =
-                value.abs(); // Convert to positive for the chart
+            positiveNetAmount[key] = value.abs();
           });
 
           Map<String, double> positiveSpending = {};
           categorySpending.forEach((key, value) {
-            positiveSpending[key] =
-                value.abs(); // Convert to positive for the chart
+            positiveSpending[key] = value.abs();
           });
+
           Map<String, double> selectedData;
           Map<String, double> selectedDataForCategory;
+
           if (_selectedFilter == "Expense Overview") {
             selectedData = positiveSpending;
             selectedDataForCategory = categorySpending;
           } else if (_selectedFilter == "Income Overview") {
             selectedData = categoryEarnings;
-            selectedDataForCategory = categoryEarnings; //
+            selectedDataForCategory = categoryEarnings;
           } else {
             selectedData = positiveNetAmount;
             selectedDataForCategory = categoryNetAmount;
           }
-
+          if (selectedData.isEmpty) {
+            return Center(
+              child: Text(
+                "No $_selectedFilter transactions found!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey),
+              ),
+            );
+          }
           return Column(
             children: [
               SizedBox(height: 10),
