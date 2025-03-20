@@ -5,16 +5,16 @@ import 'package:fl_chart/fl_chart.dart';
 class AnalysisScreen extends StatefulWidget {
   const AnalysisScreen({super.key});
   @override
-  _AnalysisScreenState createState() => _AnalysisScreenState();
+  AnalysisScreenState createState() => AnalysisScreenState();
 }
 
-class _AnalysisScreenState extends State<AnalysisScreen> {
+class AnalysisScreenState extends State<AnalysisScreen> {
   String _selectedFilter = "Net Amount";
   DateTimeRange? _selectedDateRange;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // final theme = Theme.of(context);
     return Scaffold(
       // backgroundColor: Colors.black87,
 appBar: AppBar(
@@ -97,7 +97,7 @@ appBar: AppBar(
         try {
           transactionDate = DateTime.parse(data['date']); // Convert string to DateTime
         } catch (e) {
-          print("Invalid date format: ${data['date']}");
+          // print("Invalid date format: ${data['date']}");
           return false; // Skip this document if date format is incorrect
         }
       } else {

@@ -7,7 +7,6 @@ import 'screens/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/category_provider.dart';
 
-
 var kColorScheme = ColorScheme.fromSeed(
   seedColor: const Color.fromARGB(255, 159, 29, 234),
 );
@@ -25,12 +24,13 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => CategoryProvider()),
       ],
-      child:  MyApp(),
+      child: MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -53,12 +53,12 @@ class MyApp extends StatelessWidget {
           ),
         ),
         textTheme: ThemeData().textTheme.copyWith(
-          titleLarge: TextStyle(
-            fontWeight: FontWeight.normal,
-            color: kColorScheme.onSecondaryContainer,
-            fontSize: 20,
-          ),
-        ),
+              titleLarge: TextStyle(
+                fontWeight: FontWeight.normal,
+                color: kColorScheme.onSecondaryContainer,
+                fontSize: 20,
+              ),
+            ),
       ),
       darkTheme: ThemeData.dark().copyWith(
         colorScheme: kDarkColorScheme,
@@ -82,6 +82,7 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthCheck extends StatelessWidget {
+  const AuthCheck({super.key});
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(

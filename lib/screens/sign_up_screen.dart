@@ -4,11 +4,12 @@ import './home_screen.dart';
 import './sign_in_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
   @override
-  _SignUpScreenState createState() => _SignUpScreenState();
+  SignUpScreenState createState() => SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -56,14 +57,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
             CircleAvatar(
               radius: 50,
               backgroundColor: theme.colorScheme.primaryContainer,
-              child: Icon(Icons.person, size: 50, color: theme.colorScheme.primary),
+              child: Icon(Icons.person,
+                  size: 50, color: theme.colorScheme.primary),
             ),
             SizedBox(height: 20),
             _buildTextField(nameController, "Full Name", Icons.person, theme),
             SizedBox(height: 10),
             _buildTextField(emailController, "Email", Icons.email, theme),
             SizedBox(height: 10),
-            _buildTextField(passwordController, "Password", Icons.lock, theme, obscureText: true),
+            _buildTextField(passwordController, "Password", Icons.lock, theme,
+                obscureText: true),
             SizedBox(height: 20),
             _isLoading
                 ? CircularProgressIndicator()
@@ -71,12 +74,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     onPressed: _signUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.primary,
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 80),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 12, horizontal: 80),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: Text("Sign Up", style: TextStyle(fontSize: 16, color: theme.colorScheme.onPrimary)),
+                    child: Text("Sign Up",
+                        style: TextStyle(
+                            fontSize: 16, color: theme.colorScheme.onPrimary)),
                   ),
             SizedBox(height: 10),
             TextButton(
@@ -92,7 +98,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, ThemeData theme,
+  Widget _buildTextField(TextEditingController controller, String label,
+      IconData icon, ThemeData theme,
       {bool obscureText = false}) {
     return TextField(
       controller: controller,

@@ -34,7 +34,7 @@ void initState() {
   final _amountController = TextEditingController();
   DateTime? _selectedDate;
   TransactionType _selectedType = TransactionType.expense;
-  List<Category> _categories = [];
+  // List<Category> _categories = [];
 
   // void _fetchCategories() async {
   //   FirebaseFirestore.instance.collection('categories').snapshots().listen((snapshot) {
@@ -209,7 +209,7 @@ void _addNewCategory(String category) async {
 
     Navigator.pop(context);
   } catch (error) {
-    print("Error saving transaction: $error");
+    // print("Error saving transaction: $error");
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -403,10 +403,12 @@ void _addNewCategory(String category) async {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: _manageCategories,
-                          child: const Text("Manage Categories"),
+                          
                           style: TextButton.styleFrom(
                           foregroundColor: theme.colorScheme.secondary,
-                        ),),
+                          
+                        ),
+                        child: const Text("Manage Categories"),),
                         ),
                       
                       const SizedBox(height: 12),

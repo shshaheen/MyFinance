@@ -1,13 +1,19 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_test/flutter_test.dart';
-// import 'package:my_finance/main.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:my_finance/widgets/counter_widget.dart'; // Adjust based on your project structure
 
 void main() {
-//   testWidgets('Home screen loads correctly', (WidgetTester tester) async {
-//     // Load the app
-//     await tester.pumpWidget(MaterialApp(home: MyApp()));
+  testWidgets('Counter increments when button is tapped', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(home: CounterWidget()));
 
-//     // Verify the presence of the app title
-//     expect(find.text('MyFinance'), findsOneWidget);
-//   });
+    // Verify initial counter value
+    expect(find.text('0'), findsOneWidget);
+
+    // Tap the increment button
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+
+    // Verify updated counter value
+    expect(find.text('1'), findsOneWidget);
+  });
 }

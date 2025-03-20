@@ -4,11 +4,12 @@ import './sign_up_screen.dart';
 import './home_screen.dart';
 
 class SignInScreen extends StatefulWidget {
+  const SignInScreen({super.key});
   @override
-  _SignInScreenState createState() => _SignInScreenState();
+  SignInScreenState createState() => SignInScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class SignInScreenState extends State<SignInScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final AuthService _authService = AuthService();
@@ -58,12 +59,15 @@ class _SignInScreenState extends State<SignInScreen> {
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: theme.colorScheme.primary,
-                  child: Icon(Icons.person, size: 60, color: theme.colorScheme.onPrimary),
+                  child: Icon(Icons.person,
+                      size: 60, color: theme.colorScheme.onPrimary),
                 ),
                 SizedBox(height: 20),
-                _buildTextField(emailController, 'Email', Icons.email, false, theme),
+                _buildTextField(
+                    emailController, 'Email', Icons.email, false, theme),
                 SizedBox(height: 10),
-                _buildTextField(passwordController, 'Password', Icons.lock, true, theme),
+                _buildTextField(
+                    passwordController, 'Password', Icons.lock, true, theme),
                 SizedBox(height: 20),
                 _isLoading
                     ? CircularProgressIndicator()
@@ -74,16 +78,21 @@ class _SignInScreenState extends State<SignInScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          padding: EdgeInsets.symmetric(horizontal: 50, vertical: 12),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 50, vertical: 12),
                         ),
-                        child: Text('Sign In', style: TextStyle(fontSize: 18, color: theme.colorScheme.onPrimary)),
+                        child: Text('Sign In',
+                            style: TextStyle(
+                                fontSize: 18,
+                                color: theme.colorScheme.onPrimary)),
                       ),
                 SizedBox(height: 15),
                 TextButton(
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (context) => SignUpScreen()),
                   ),
-                  child: Text("Don't have an account? Sign Up", style: TextStyle(color: theme.colorScheme.secondary)),
+                  child: Text("Don't have an account? Sign Up",
+                      style: TextStyle(color: theme.colorScheme.secondary)),
                 ),
               ],
             ),
@@ -93,7 +102,8 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, bool obscure, ThemeData theme) {
+  Widget _buildTextField(TextEditingController controller, String hint,
+      IconData icon, bool obscure, ThemeData theme) {
     return TextField(
       controller: controller,
       obscureText: obscure,

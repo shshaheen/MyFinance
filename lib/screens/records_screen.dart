@@ -27,7 +27,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
     QuerySnapshot snapshot = await _firestore.collection('transactions').get();
 
     List<Map<String, dynamic>> fetchedTransactions = snapshot.docs.map((doc) {
-      print("Fetched doc ID: ${doc.id}"); // Debugging
+      // print("Fetched doc ID: ${doc.id}"); // Debugging
       return {
         'id': doc.id, // Store document ID
         ...doc.data() as Map<String, dynamic>,
@@ -41,19 +41,19 @@ class _RecordsScreenState extends State<RecordsScreen> {
 
   /// Delete transaction from Firestore & update UI
   void _deleteTransaction(String transactionId) async {
-    print(
-        "Attempting to delete transaction with ID: $transactionId"); // Debugging
+    // print(
+    //     "Attempting to delete transaction with ID: $transactionId"); // Debugging
 
     try {
       await _firestore.collection('transactions').doc(transactionId).delete();
-      print("Transaction deleted successfully: $transactionId");
+      // print("Transaction deleted successfully: $transactionId");
 
       // Remove from UI after deletion
       setState(() {
         transactions.removeWhere((t) => t['id'] == transactionId);
       });
     } catch (e) {
-      print("Error deleting transaction: $e");
+      // print("Error deleting transaction: $e");
     }
   }
 
@@ -84,7 +84,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
             var data = doc.data() as Map<String, dynamic>;
             data['id'] = doc.id; // Add document ID
 
-            var date;
+            DateTime date;
             if (data['date'] is Timestamp) {
               date = (data['date'] as Timestamp).toDate();
             } else if (data['date'] is String) {
@@ -146,7 +146,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
                     String date = groupedTransactions.keys.elementAt(index);
                     List<Map<String, dynamic>> transactions =
                         groupedTransactions[date]!;
-                    return _buildTransactionSection(date, transactions);
+                    return buildTransactionSection(date, transactions);
                   },
                 ),
               ),
@@ -172,7 +172,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
     );
   }
 
-  Widget _buildTransactionSection(
+  Widget buildTransactionSection(
       String date, List<Map<String, dynamic>> transactions) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
