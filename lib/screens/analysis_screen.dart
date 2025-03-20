@@ -14,54 +14,66 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       // backgroundColor: Colors.black87,
-      appBar: AppBar(
-        title: Row(
-          mainAxisAlignment:
-              MainAxisAlignment.spaceBetween, // Aligns items properly
-          children: [
-            DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedFilter,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedFilter = value!;
-                  });
-                },
-                items: ["Income Overview", "Expense Overview", "Net Amount"]
-                    .map((filter) => DropdownMenuItem(
-                          value: filter,
-                          child: Text(filter,
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold)),
-                        ))
-                    .toList(),
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.filter_list,
-                  color: Color.fromARGB(255, 35, 34, 34)), // Filter icon
-              onPressed: () async {
-                DateTimeRange? picked = await showDateRangePicker(
-                  context: context,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime.now(),
-                  initialDateRange: _selectedDateRange,
-                );
-
-                if (picked != null) {
-                  setState(() {
-                    _selectedDateRange = picked;
-                  });
-                }
-              },
-            ),
-          ],
+appBar: AppBar(
+  elevation: 0, // No shadow
+  backgroundColor: Colors.transparent, // Fully transparent
+  surfaceTintColor: Colors.transparent, // Prevents unwanted overlay color
+  titleSpacing: 0, // Aligns title properly
+  title: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceAround,
+    children: [
+      DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedFilter,
+          dropdownColor: Theme.of(context).colorScheme.background, // Matches body
+          onChanged: (value) {
+            setState(() {
+              _selectedFilter = value!;
+            });
+          },
+          items: ["Income Overview", "Expense Overview", "Net Amount"]
+              .map((filter) => DropdownMenuItem(
+                    value: filter,
+                    child: Text(
+                      filter,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onBackground,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ))
+              .toList(),
         ),
       ),
+      const SizedBox(width: 16),
+      IconButton(
+        icon: Icon(
+          Icons.filter_list,
+          color: Theme.of(context).colorScheme.onBackground, // Matches text color
+        ),
+        onPressed: () async {
+          DateTimeRange? picked = await showDateRangePicker(
+            context: context,
+            firstDate: DateTime(2000),
+            lastDate: DateTime.now(),
+            initialDateRange: _selectedDateRange,
+          );
+
+          if (picked != null) {
+            setState(() {
+              _selectedDateRange = picked;
+            });
+          }
+          },
+        ),
+      ],
+    ),
+  ),
+
 
       body: StreamBuilder(
         stream:
@@ -71,34 +83,34 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             return Center(child: CircularProgressIndicator());
           }
 
-List<QueryDocumentSnapshot> filteredDocs =
-    snapshot.data!.docs.where((doc) {
-  var data = doc.data() as Map<String, dynamic>;
+    List<QueryDocumentSnapshot> filteredDocs =
+        snapshot.data!.docs.where((doc) {
+      var data = doc.data() as Map<String, dynamic>;
 
-  if (!data.containsKey('date')) return false;
+      if (!data.containsKey('date')) return false;
 
-  // Ensure correct date conversion
-  DateTime transactionDate;
-  if (data['date'] is Timestamp) {
-    transactionDate = (data['date'] as Timestamp).toDate();
-  } else if (data['date'] is String) {
-    try {
-      transactionDate = DateTime.parse(data['date']); // Convert string to DateTime
-    } catch (e) {
-      print("Invalid date format: ${data['date']}");
-      return false; // Skip this document if date format is incorrect
-    }
-  } else {
-    return false; // Skip if date is neither Timestamp nor String
-  }
+      // Ensure correct date conversion
+      DateTime transactionDate;
+      if (data['date'] is Timestamp) {
+        transactionDate = (data['date'] as Timestamp).toDate();
+      } else if (data['date'] is String) {
+        try {
+          transactionDate = DateTime.parse(data['date']); // Convert string to DateTime
+        } catch (e) {
+          print("Invalid date format: ${data['date']}");
+          return false; // Skip this document if date format is incorrect
+        }
+      } else {
+        return false; // Skip if date is neither Timestamp nor String
+      }
 
-  if (_selectedDateRange == null) return true;
+      if (_selectedDateRange == null) return true;
 
-  return transactionDate.isAfter(
-          _selectedDateRange!.start.subtract(Duration(seconds: 1))) &&
-      transactionDate.isBefore(
-          _selectedDateRange!.end.add(Duration(days: 1)));
-}).toList();
+      return transactionDate.isAfter(
+              _selectedDateRange!.start.subtract(Duration(seconds: 1))) &&
+          transactionDate.isBefore(
+              _selectedDateRange!.end.add(Duration(days: 1)));
+    }).toList();
 
 
 
@@ -258,28 +270,43 @@ List<QueryDocumentSnapshot> filteredDocs =
     );
   }
 
-  Widget _buildCategoryList(Map<String, double> data) {
-    return ListView(
-      shrinkWrap: true,
-      children: data.entries.map((entry) {
-        final bool isNegative = entry.value < 0;
-        final String sign = isNegative ? "-" : "+";
-        final Color amountColor = isNegative ? Colors.red : Colors.green;
-        return Card(
-          // color: Colors.black,
-          margin: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-          child: ListTile(
-            leading: Icon(Icons.circle,
-                color: Colors.primaries[data.keys.toList().indexOf(entry.key) %
-                    Colors.primaries.length]),
-            title: Text(entry.key,
-                style: TextStyle(color: const Color.fromARGB(255, 54, 52, 52))),
-            trailing: Text("$sign ₹${entry.value.abs().toStringAsFixed(2)}",
-                style:
-                    TextStyle(color: amountColor, fontWeight: FontWeight.bold)),
+Widget _buildCategoryList(Map<String, double> data) {
+  return ListView(
+    shrinkWrap: true,
+    children: data.entries.map((entry) {
+      final bool isNegative = entry.value < 0;
+      final String sign = isNegative ? "-" : "+";
+      final Color amountColor = isNegative 
+          ? Theme.of(context).colorScheme.error 
+          : Theme.of(context).colorScheme.primary;
+
+      return Card(
+        elevation: 3, // Soft shadow
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        // color: Theme.of(context).cardColor, // Matches theme
+        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: ListTile(
+          leading: Icon(
+            Icons.circle,
+            size: 12,
+            color: Colors.primaries[data.keys.toList().indexOf(entry.key) % Colors.primaries.length],
           ),
-        );
-      }).toList(),
-    );
-  }
+          title: Text(
+            entry.key,
+            style: Theme.of(context).textTheme.titleMedium, // Themed text
+          ),
+          trailing: Text(
+            "$sign ₹${entry.value.abs().toStringAsFixed(2)}",
+            style: TextStyle(
+              color: amountColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+    }).toList(),
+  );
+}
+
 }

@@ -31,7 +31,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
       return {
         'id': doc.id, // Store document ID
         ...doc.data() as Map<String, dynamic>,
-      };
+      };  
     }).toList();
 
     setState(() {
@@ -60,12 +60,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Money Manager"),
-        centerTitle: true,
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-      ),
+
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
             .collection('transactions')
@@ -118,34 +113,30 @@ class _RecordsScreenState extends State<RecordsScreen> {
           return Column(
             children: [
               // Top Summary Section
-              Container(
-                padding: const EdgeInsets.all(16),
-                color: Colors.deepPurple,
-                child: Column(
-                  children: [
-                    const Text(
-                      "January, 2025",
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _summaryItem(
-                            "EXPENSE",
-                            "-\$${totalExpense.toStringAsFixed(2)}",
-                            Colors.red),
-                        _summaryItem(
-                            "INCOME",
-                            "+\$${totalIncome.toStringAsFixed(2)}",
-                            Colors.green),
-                        _summaryItem("TOTAL", "\$${balance.toStringAsFixed(2)}",
-                            Colors.white),
-                      ],
-                    ),
-                  ],
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).shadowColor.withOpacity(0.2), // Shadow color
+                  blurRadius: 12, // Softness of the shadow
+                  spreadRadius: 3, // How much the shadow spreads
+                  offset: Offset(0, 4), // Moves shadow downward
                 ),
-              ),
+              ],
+              // borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)), // Rounded bottom
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _summaryItem(context,"EXPENSE", "-\$${totalExpense.toStringAsFixed(2)}", Colors.red),
+                _summaryItem(context, "INCOME", "+\$${totalIncome.toStringAsFixed(2)}", Colors.green),
+                _summaryItem(context, "TOTAL", "\$${balance.toStringAsFixed(2)}", const Color.fromARGB(255, 36, 181, 225)),
+              ],
+            ),
+          ),
+
               const SizedBox(height: 10),
               // Transactions List
               Expanded(
@@ -166,10 +157,13 @@ class _RecordsScreenState extends State<RecordsScreen> {
     );
   }
 
-  Widget _summaryItem(String title, String value, Color color) {
+  Widget _summaryItem(BuildContext context, title, String value, Color color) {
     return Column(
       children: [
-        Text(title, style: const TextStyle(color: Colors.white70)),
+        Text(title,
+         style:  TextStyle(
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+          ),),
         const SizedBox(height: 4),
         Text(value,
             style: TextStyle(

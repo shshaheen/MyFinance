@@ -46,8 +46,21 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      appBar: AppBar(title: Text('Welcome, $fullName')),
+
+      appBar: AppBar(
+        elevation: 4,
+        shadowColor: Theme.of(context).colorScheme.primaryContainer,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text(
+          'Welcome, $fullName',
+          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+        ),
+      ),
+
+
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,

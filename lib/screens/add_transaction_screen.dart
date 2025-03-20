@@ -236,18 +236,22 @@ void initState() {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
       appBar: AppBar(
+        
         title: const Text("Add Transaction"),
         centerTitle: true,
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, keyboardSpace + 16),
+          padding: EdgeInsets.fromLTRB(10, 10, 10, keyboardSpace + 16),
           child: Card(
+          color: theme.cardColor,
+
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -256,6 +260,7 @@ void initState() {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                // mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: _titleController,
@@ -305,8 +310,8 @@ void initState() {
                             },
                             borderRadius: BorderRadius.circular(8),
                             selectedColor: Colors.white,
-                            fillColor: Colors.deepPurple,
-                            color: Colors.black,
+                            fillColor: theme.colorScheme.secondary,
+                            color: theme.colorScheme.onBackground,
                             children: const [
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 12),
@@ -324,7 +329,7 @@ void initState() {
                                 context: context,
                                 initialDate: DateTime.now(),
                                 firstDate: DateTime(DateTime.now().year - 1),
-                                lastDate: DateTime.now(),
+                                lastDate: DateTime(DateTime.now().year + 1),
                               );
                               if (pickedDate != null) {
                                 setState(() {
@@ -345,8 +350,8 @@ void initState() {
                                       ? "Select Date"
                                       : formatter.format(_selectedDate!)),
                                   const SizedBox(width: 8),
-                                  const Icon(Icons.calendar_today,
-                                      color: Colors.blue),
+                                   Icon(Icons.calendar_today,
+                                      color: Theme.of(context).colorScheme.secondary),
                                 ],
                               ),
                             ),
@@ -387,8 +392,11 @@ void initState() {
                     child: TextButton(
                       onPressed: _manageCategories,
                       child: const Text("Manage Categories"),
+                      style: TextButton.styleFrom(
+                      foregroundColor: theme.colorScheme.secondary,
+                    ),),
                     ),
-                  ),
+                  
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -402,8 +410,8 @@ void initState() {
                         icon: const Icon(Icons.save),
                         label: const Text("Save Transaction"),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
-                          foregroundColor: Colors.white,
+                          backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 12),
                         ),
