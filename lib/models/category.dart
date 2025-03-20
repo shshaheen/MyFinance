@@ -1,23 +1,14 @@
-import 'package:uuid/uuid.dart';
-
-const uuid = Uuid();
-
-class CategoryModel {
+class Category {
   final String id;
-  String name;
+  final String name;
 
-  CategoryModel({required this.id, required this.name});
+  Category({required this.id, required this.name});
 
-  // Factory constructor to create a new category with a unique ID
-  factory CategoryModel.create(String name) {
-    return CategoryModel(id: uuid.v4(), name: name);
+  factory Category.fromFirestore(Map<String, dynamic> data, String id) {
+    return Category(id: id, name: data['name']);
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {'name': name};
   }
 }
-
-
-List<CategoryModel> defaultCategories = [
-  CategoryModel(id: "1", name: "Food"),
-  CategoryModel(id: "2", name: "Leisure"),
-  CategoryModel(id: "3", name: "Travel"),
-  CategoryModel(id: "4", name: "Work"),
-];

@@ -4,6 +4,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/home_screen.dart';
+import 'package:provider/provider.dart';
+import 'providers/category_provider.dart';
+
 
 var kColorScheme = ColorScheme.fromSeed(
   seedColor: const Color.fromARGB(255, 159, 29, 234),
@@ -16,7 +19,15 @@ var kDarkColorScheme = ColorScheme.fromSeed(
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(MyApp());
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => CategoryProvider()),
+      ],
+      child:  MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

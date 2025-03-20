@@ -20,7 +20,7 @@ class Transaction {
   final String title;
   final double amount;
   final DateTime date;
-  final CategoryModel category;
+  final Category category;
   final TransactionType type; // NEW FIELD
 
   String get formattedDate {
